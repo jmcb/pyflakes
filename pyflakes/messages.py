@@ -95,12 +95,39 @@ class UnusedVariable(Message):
         Message.__init__(self, filename, loc)
         self.message_args = (names,)
 
-class ListInClassDefinition (Message):
+class EmptyContainerInClassDefinition (Message):
     """
     Indicates that a member in a class definition is a list.
 
+    In a lot of instances, the following is a mistake:
+
+        class Test (object):
+            a = []
+            ...
+
+    The above results in the following:
+
+        >> a = Test()
+        >> b = Test()
+        >> b.a.append(1)
+        >> b.a == a.a
+        True
+
+    It's usually not intendend that instances of the share the same list and can
+    cause headaches until you actually realise the mistake that you've made.
+    Having a warning for empty containers in class definitions thus immediately
+    brings attention to this fact.
+
+    However, it's better to assume that the following is intended behaviour:
+
+        class Test (object):
+            my_fields = ["a", "b", "c"]
+            ...
+
+    Thus it's better to limit this to empty containers.
+
     """
-    message = 'class member %r contains a list!'
-    def __init__ (self, filename, loc, names):
+    message = 'member %r of %r includes an empty %s in class definition!'
+    def __init__ (self, filename, loc, name, class_name):
         Message.__init__(self, filename, loc)
-        self.message_args = (names, )
+        self.message_args = (name, class_name, loc.__class__.__name__.lower())

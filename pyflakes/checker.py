@@ -143,9 +143,13 @@ class Scope(dict):
 
 
 class ClassScope(Scope):
-    pass
+    """
+    Represents a scope for a class.
 
-
+    """
+    def __init__ (self, name):
+        self.name = name
+        super(ClassScope, self).__init__()
 
 class FunctionScope(Scope):
     """
@@ -276,8 +280,8 @@ class Checker(object):
     def pushFunctionScope(self):
         self.scopeStack.append(FunctionScope())
 
-    def pushClassScope(self):
-        self.scopeStack.append(ClassScope())
+    def pushClassScope(self, name):
+        self.scopeStack.append(ClassScope(name))
 
     def report(self, messageClass, *args, **kwargs):
         self.messages.append(messageClass(self.filename, *args, **kwargs))
@@ -315,15 +319,25 @@ class Checker(object):
     def ignore(self, node):
         pass
 
+    def handleContainer (self, node):
+
+        if isinstance(self.scope, ClassScope) and len(node.elts) == 0:
+            for target in node.parent.targets:
+                self.report(messages.EmptyContainerInClassDefinition,
+                    node, target.id, self.scope.name)
+
+        self.handleChildren(node)
+
     # "stmt" type nodes
     RETURN = DELETE = PRINT = WHILE = IF = WITH = RAISE = TRYEXCEPT = \
         TRYFINALLY = ASSERT = EXEC = EXPR = handleChildren
+    LIST = DICT = handleContainer
 
     CONTINUE = BREAK = PASS = ignore
 
     # "expr" type nodes
-    BOOLOP = BINOP = UNARYOP = IFEXP = DICT = SET = YIELD = COMPARE = \
-    CALL = REPR = ATTRIBUTE = SUBSCRIPT = LIST = TUPLE = handleChildren
+    BOOLOP = BINOP = UNARYOP = IFEXP = SET = YIELD = COMPARE = \
+    CALL = REPR = ATTRIBUTE = SUBSCRIPT = TUPLE = handleChildren
 
     NUM = STR = ELLIPSIS = ignore
 
@@ -579,7 +593,7 @@ class Checker(object):
             self.handleNode(deco, node)
         for baseNode in node.bases:
             self.handleNode(baseNode, node)
-        self.pushClassScope()
+        self.pushClassScope(node.name)
         for stmt in node.body:
             self.handleNode(stmt, node)
         self.popScope()
