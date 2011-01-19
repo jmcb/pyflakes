@@ -94,3 +94,13 @@ class UnusedVariable(Message):
     def __init__(self, filename, loc, names):
         Message.__init__(self, filename, loc)
         self.message_args = (names,)
+
+class ListInClassDefinition (Message):
+    """
+    Indicates that a member in a class definition is a list.
+
+    """
+    message = 'class member %r contains a list!'
+    def __init__ (self, filename, loc, names):
+        Message.__init__(self, filename, loc)
+        self.message_args = (names, )
