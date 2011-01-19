@@ -324,7 +324,7 @@ class Checker(object):
         if isinstance(self.scope, ClassScope) and len(node.elts) == 0:
             for target in node.parent.targets:
                 self.report(messages.EmptyContainerInClassDefinition,
-                    node, target.id, self.scope.name)
+                    target, target.id, self.scope.name)
 
         self.handleChildren(node)
 
