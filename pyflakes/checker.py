@@ -320,8 +320,7 @@ class Checker(object):
         pass
 
     def handleContainer (self, node):
-
-        if isinstance(self.scope, ClassScope) and len(node.elts) == 0:
+        if isinstance(self.scope, ClassScope) and ((isinstance(node, ast.List) and len(node.elts) == 0) or (isinstance(node, ast.Dict) and len(node.keys) == 0)):
             for target in node.parent.targets:
                 self.report(messages.EmptyContainerInClassDefinition,
                     target, target.id, self.scope.name)
